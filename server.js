@@ -1,55 +1,59 @@
 import express from 'express';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { query,pool } from './config/database.js';  
+import { pool } from './config/database.js'; // Asegúrate de que pool está exportado
 
 const app = express();
 const port = 3000;
 
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
 
 app.use(express.static(join(__dirname, 'public')));
 
 app.set('view engine', 'ejs');
 app.set('views', join(__dirname, 'views'));
 
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/', (req, res) => {
-  res.render('index');  
+app.get('/', async (req, res) => {
+  res.render('index');
 });
 
-
-app.get('/register', (req, res) => {
-  res.render('register');  
+app.get('/register', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT siglas FROM facultades;');
+    const siglasArray = result.rows.map(row => row.siglas);
+    res.render('register', { siglas: siglasArray });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error en la base de datos');
+  }
 });
-
 
 app.post('/new', async (req, res) => {
-  const { email, password,usuario,facultad } = req.body;
+  const { email, password, usuario, facultades } = req.body;
 
-    //corregir tabla y query
-    try {
-        const result = await pool.query('INSERT INTO users (email, password,usuario,facultad) VALUES ($1, $2)', [email, password,usuario,facultad]);
-        res.send('Cuenta creada con éxito');
-    } catch (err) {
-        console.error('Error al registrar el usuario:', err);
-        res.status(500).send('Error al crear la cuenta');
+  // Verificar si 'facultades' es un array. Si no, convertirlo en uno.
+  const selectedFacultades = Array.isArray(facultades) ? facultades : [facultades];
+
+  try {
+    // Insertar en la base de datos. Aquí se hace una inserción por cada facultad seleccionada.
+    for (const facultad of selectedFacultades) {
+      await pool.query('INSERT INTO users (email, password, usuario, facultad) VALUES ($1, $2, $3, $4)', [email, password, usuario, facultad]);
     }
-
+    res.send('Cuenta creada con éxito');
+  } catch (err) {
+    console.error('Error al registrar el usuario:', err);
+    res.status(500).send('Error al crear la cuenta');
+  }
 });
-
 
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   try {
-    
-    const result = await query('SELECT * FROM users WHERE email = $1 AND password = $2', [email, password]);
+    const result = await pool.query('SELECT * FROM users WHERE email = $1 AND password = $2', [email, password]);
     if (result.rows.length > 0) {
       res.send('Inicio de sesión exitoso');
     } else {
@@ -60,7 +64,6 @@ app.post('/login', async (req, res) => {
     res.status(500).send('Error en el servidor');
   }
 });
-
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
