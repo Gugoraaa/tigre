@@ -33,20 +33,36 @@ app.get('/register', async (req, res) => {
 });
 
 app.post('/new', async (req, res) => {
+
+  function correoUANL(correo) {
+    const regex = /^[a-zA-Z0-9._%+-]+@uanl\.com$/;
+    return regex.test(correo);
+  } 
+
   const { email, password, usuario, facultades } = req.body;
 
-  // Verificar si 'facultades' es un array. Si no, convertirlo en uno.
-  const selectedFacultades = Array.isArray(facultades) ? facultades : [facultades];
+  if (correoUANL(email)) {
 
-  try {
-    // Insertar en la base de datos. Aquí se hace una inserción por cada facultad seleccionada.
-    for (const facultad of selectedFacultades) {
-      await pool.query('INSERT INTO users (email, password, usuario, facultad) VALUES ($1, $2, $3, $4)', [email, password, usuario, facultad]);
+    // Verificar si 'facultades' es un array. Si no, convertirlo en uno.
+    const selectedFacultades = Array.isArray(facultades) ? facultades : [facultades];
+
+    
+
+    try {
+      // Insertar en la base de datos. Aquí se hace una inserción por cada facultad seleccionada.
+      for (const facultad of selectedFacultades) {
+        await pool.query('INSERT INTO users (email, password, usuario, facultad) VALUES ($1, $2, $3, $4)', [email, password, usuario, facultad]);
+      }
+      res.send('Cuenta creada con éxito');
+    } catch (err) {
+      console.error('Error al registrar el usuario:', err);
+      res.status(500).send('Error al crear la cuenta');
     }
-    res.send('Cuenta creada con éxito');
-  } catch (err) {
-    console.error('Error al registrar el usuario:', err);
-    res.status(500).send('Error al crear la cuenta');
+
+  }
+  else {
+    res.redirect('/register?message=Necesitar un correo de la asociacion  &messageType=error');
+
   }
 });
 

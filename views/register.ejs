@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crear Cuenta</title>
     <link href="/css/styles.css" rel="stylesheet"> <!-- Asegúrate de tener Tailwind CSS disponible aquí -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+            if (message) {
+                alert(message); // Solo muestra el mensaje sin información adicional
+            }
+        });
+    </script>
 </head>
 <body class="bg-white bg-cover bg-center flex justify-center items-center h-screen">
     <div class="bg-white p-8 rounded-lg shadow-lg w-80">
