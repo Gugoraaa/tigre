@@ -34,11 +34,7 @@ app.get('/register', async (req, res) => {
 
 app.post('/new', async (req, res) => {
 
-  function correoUANL(correo) {
-    const regex = /^[a-zA-Z0-9._%+-]+@uanl\.com$/;
-    return regex.test(correo);
-  } 
-
+  
   const { email, password, usuario, facultades, 'confirm-password': confirmPassword  } = req.body;
 
   const usuarioExists = await pool.query('SELECT 1 FROM users WHERE usuario = $1', [usuario]);
@@ -46,11 +42,6 @@ app.post('/new', async (req, res) => {
   if (usuarioExists.rows.length > 0) {
     return res.redirect('/register?message=El nombre de usuariio ya está registrado &messageType=error');
     
-  }
-
-  if (correoUANL(email)=== false) {
-    return res.redirect('/register?message=Necesitar un correo de la asociacion  &messageType=error');
- 
   }
 
     // Verificar si el correo ya está registrado en la base de datos
