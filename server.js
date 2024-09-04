@@ -39,18 +39,39 @@ app.post('/new', async (req, res) => {
     return regex.test(correo);
   } 
 
-  const { email, password, usuario, facultades } = req.body;
+  const { email, password, usuario, facultades, 'confirm-password': confirmPassword  } = req.body;
+
+  const usuarioExists = await pool.query('SELECT 1 FROM users WHERE usuario = $1', [usuario]);
+
+  if (usuarioExists.rows.length > 0) {
+    return res.redirect('/register?message=El nombre de usuariio ya está registrado &messageType=error');
+    
+  }
 
   if (correoUANL(email)=== false) {
     return res.redirect('/register?message=Necesitar un correo de la asociacion  &messageType=error');
-    
-
+ 
   }
+
+    // Verificar si el correo ya está registrado en la base de datos
+  const emailExists = await pool.query('SELECT 1 FROM users WHERE email = $1', [email]);
+
+  if (emailExists.rows.length > 0) {
+    return res.redirect('/register?message=El correo ya está registrado &messageType=error');
+    
+  }
+
+  if (password != confirmPassword){
+    return res.redirect('/register?message=Las contraseñas no coinciden &messageType=error');
+  }
+
+  if (!facultades || facultades.length === 0){
+    return res.redirect('/register?message=Debes seleccionar una facultad &messageType=error')
+  }
+
 
     // Verificar si 'facultades' es un array. Si no, convertirlo en uno.
   const selectedFacultades = Array.isArray(facultades) ? facultades : [facultades];
-
-  
 
   try {
     // Insertar en la base de datos. Aquí se hace una inserción por cada facultad seleccionada.
@@ -63,11 +84,6 @@ app.post('/new', async (req, res) => {
     res.status(500).send('Error al crear la cuenta');
   }
 
-  
-
-    
-
-  
 });
 
 app.post('/login', async (req, res) => {
