@@ -22,20 +22,14 @@ app.get('/', async (req, res) => {
 });
 
 app.get('/register', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT siglas FROM facultades;');
-    const siglasArray = result.rows.map(row => row.siglas);
-    res.render('register', { siglas: siglasArray });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Error en la base de datos');
-  }
+
+  res.render('register');
+ 
 });
 
 app.post('/new', async (req, res) => {
 
-  
-  const { email, password, usuario, facultades, 'confirm-password': confirmPassword  } = req.body;
+  const { email, password, usuario, 'confirm-password': confirmPassword  } = req.body;
 
   const usuarioExists = await pool.query('SELECT 1 FROM users WHERE usuario = $1', [usuario]);
 
@@ -56,19 +50,10 @@ app.post('/new', async (req, res) => {
     return res.redirect('/register?message=Las contraseñas no coinciden &messageType=error');
   }
 
-  if (!facultades || facultades.length === 0){
-    return res.redirect('/register?message=Debes seleccionar una facultad &messageType=error')
-  }
-
-
-    // Verificar si 'facultades' es un array. Si no, convertirlo en uno.
-  const selectedFacultades = Array.isArray(facultades) ? facultades : [facultades];
-
   try {
     // Insertar en la base de datos. Aquí se hace una inserción por cada facultad seleccionada.
-    for (const facultad of selectedFacultades) {
-      await pool.query('INSERT INTO users (email, password, usuario, facultad) VALUES ($1, $2, $3, $4)', [email, password, usuario, facultad]);
-    }
+    await pool.query('INSERT INTO users (email, password, usuario) VALUES ($1, $2, $3)', [email, password, usuario]);
+    
     res.send('Cuenta creada con éxito');
   } catch (err) {
     console.error('Error al registrar el usuario:', err);
