@@ -9,6 +9,11 @@ const port = 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+let usuario = {
+  id: 0,
+  nombre: ""
+};
+
 app.use(express.static(join(__dirname, 'public')));
 
 app.set('view engine', 'ejs');
@@ -18,56 +23,65 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/', async (req, res) => {
-  res.render('index');
+  res.render('index', { usuario: usuario });
 });
 
 app.get('/register', async (req, res) => {
-
   res.render('register');
- 
+});
+
+app.get('/login', async (req, res) => {
+  res.render('login');
+});
+
+app.get('/user_screen', async (req, res) => {
+  res.render('profile',{ usuario: usuario })
 });
 
 app.post('/new', async (req, res) => {
-
-  const { email, password, usuario, 'confirm-password': confirmPassword  } = req.body;
-
-  const usuarioExists = await pool.query('SELECT 1 FROM users WHERE usuario = $1', [usuario]);
-
-  if (usuarioExists.rows.length > 0) {
-    return res.redirect('/register?message=El nombre de usuariio ya está registrado &messageType=error');
-    
-  }
-
-    // Verificar si el correo ya está registrado en la base de datos
-  const emailExists = await pool.query('SELECT 1 FROM users WHERE email = $1', [email]);
-
-  if (emailExists.rows.length > 0) {
-    return res.redirect('/register?message=El correo ya está registrado &messageType=error');
-    
-  }
-
-  if (password != confirmPassword){
-    return res.redirect('/register?message=Las contraseñas no coinciden &messageType=error');
-  }
+  const { email, password, usuario: userName, 'confirm-password': confirmPassword } = req.body;
 
   try {
-    // Insertar en la base de datos. Aquí se hace una inserción por cada facultad seleccionada.
-    await pool.query('INSERT INTO users (email, password, usuario) VALUES ($1, $2, $3)', [email, password, usuario]);
-    
+    const usuarioExists = await pool.query('SELECT 1 FROM users WHERE usuario = $1', [userName]);
+
+    if (usuarioExists.rows.length > 0) {
+      return res.redirect('/register?message=El nombre de usuario ya está registrado&messageType=error');
+    }
+
+    const emailExists = await pool.query('SELECT 1 FROM users WHERE email = $1', [email]);
+
+    if (emailExists.rows.length > 0) {
+      return res.redirect('/register?message=El correo ya está registrado&messageType=error');
+    }
+
+    if (password !== confirmPassword) {
+      return res.redirect('/register?message=Las contraseñas no coinciden&messageType=error');
+    }
+
+    await pool.query('INSERT INTO users (email, password, usuario) VALUES ($1, $2, $3)', [email, password, userName]);
+
     res.send('Cuenta creada con éxito');
   } catch (err) {
     console.error('Error al registrar el usuario:', err);
     res.status(500).send('Error al crear la cuenta');
   }
-
 });
 
-app.post('/login', async (req, res) => {
+app.post('/login_val', async (req, res) => {
   const { email, password } = req.body;
   try {
     const result = await pool.query('SELECT * FROM users WHERE email = $1 AND password = $2', [email, password]);
     if (result.rows.length > 0) {
-      res.send('Inicio de sesión exitoso');
+      const user = result.rows[0];
+      
+      // Actualiza el objeto usuario con los datos del usuario encontrado
+      usuario.id = user.id;
+      usuario.nombre = user.usuario;
+      
+      
+      // Renderiza la vista 'index' pasando el objeto usuario actualizado
+      res.render('index', { usuario: usuario });
+
     } else {
       res.status(401).send('Credenciales inválidas');
     }

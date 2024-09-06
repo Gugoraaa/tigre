@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tigre Couch</title>
-    <link href="/css/styles.css" rel="stylesheet">
+    <title>Profile</title>
+    <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
     <nav class="pr-8 pl-8 bg-gray-100 py-4">
@@ -35,7 +35,7 @@
             </div>
 
             <!-- Profile icon -->
-            <a id="login-link" class="bg-gray-300 rounded-full h-16 w-16 flex items-center justify-center">
+            <a href="" class="bg-gray-300 rounded-full h-16 w-16 flex items-center justify-center">
                 <svg class="h-8 w-8 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12c2.66 0 8 1.34 8 4v2H4v-2c0-2.66 5.34-4 8-4zm0-4a4 4 0 100-8 4 4 0 000 8z" />
                 </svg>
@@ -43,19 +43,14 @@
         </div>
     </nav>
 
-    <script>
-        // Obtén el id del objeto usuario y asegúrate de que sea tratado como un número
-        let id = <%= usuario.id %>;  // Esto inyectará el valor del id en el script
+        
 
-        // Selecciona el enlace
-        const loginLink = document.getElementById('login-link');
+    <main class="px-16 pt-16">
 
-        // Configura el href basado en el id
-        if (id === 0) {
-            loginLink.href = '/login'; // Endpoint para id = 0
-        } else if (id > 0) {
-            loginLink.href = '/user_screen'; // Endpoint para id > 0
-        }
-    </script>
+        <h1> <%= usuario.nombre %></h1>
+
+
+    </main>
+    
 </body>
 </html>
