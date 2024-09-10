@@ -34,8 +34,16 @@ app.get('/login', async (req, res) => {
   res.render('login');
 });
 
-app.get('/user_screen', async (req, res) => {
-  res.render('profile',{ usuario: usuario })
+app.get('/user_screen', (req, res) => {
+  function capitalizeFirstLetter(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+  
+  if (usuario && usuario.nombre) {
+    usuario.nombre = capitalizeFirstLetter(usuario.nombre);
+  }
+
+  res.render('profile', { usuario });
 });
 
 app.post('/new', async (req, res) => {
@@ -60,7 +68,7 @@ app.post('/new', async (req, res) => {
 
     await pool.query('INSERT INTO users (email, password, usuario) VALUES ($1, $2, $3)', [email, password, userName]);
 
-    res.send('Cuenta creada con éxito');
+    return res.redirect('/login?message=Se creo la cuenta con exito ');
   } catch (err) {
     console.error('Error al registrar el usuario:', err);
     res.status(500).send('Error al crear la cuenta');
@@ -83,7 +91,7 @@ app.post('/login_val', async (req, res) => {
       res.render('index', { usuario: usuario });
 
     } else {
-      res.status(401).send('Credenciales inválidas');
+      return res.redirect('/login?message=No existen credenciales&messageType=error');
     }
   } catch (err) {
     console.error(err.message);
@@ -94,3 +102,5 @@ app.post('/login_val', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+
+
