@@ -52,7 +52,24 @@
                 Editar perfil
             </button>
         </div>
+
+        <div class="pt-10">
+            <% opiniones.forEach(opinion => { %>
+                <div class="p-6 mb-12 text-white bg-black border border-gray-300 rounded-lg shadow-md">
+                    <p><strong>Maestro:</strong> <%= opinion.maestro %></p>
+                    <p><strong>Materia:</strong> <%= opinion.materia %></p>
+                    <p><strong>Contenido:</strong> <%= opinion.contenido %></p>
+                    <p><strong>Likes:</strong> <%= opinion.likes %></p>
+                    <p><strong>Dislikes:</strong> <%= opinion.dislikes %></p>
+                    
+                </div>
+            <% }) %>
+        </div>
     </main>
+
+
+    
+    
     
     
 </body>

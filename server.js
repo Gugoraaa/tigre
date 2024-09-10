@@ -34,16 +34,31 @@ app.get('/login', async (req, res) => {
   res.render('login');
 });
 
-app.get('/user_screen', (req, res) => {
+app.get('/user_screen', async (req, res) => {
   function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
-  
+
   if (usuario && usuario.nombre) {
     usuario.nombre = capitalizeFirstLetter(usuario.nombre);
   }
 
-  res.render('profile', { usuario });
+  // Consulta a la base de datos
+  const result = await pool.query('SELECT * FROM obtener_opiniones_con_nombres($1)', [usuario.id]);
+
+  const opiniones = result.rows;  // Obtener todas las filas
+
+  // Crear un arreglo para almacenar las opiniones del usuario
+  let opiniones_usuario = opiniones.map(opinion => ({
+    maestro: opinion.maestro_nombre_completo,
+    materia: opinion.materia_nombre,
+    contenido: opinion.contentido,  // Asegúrate de que la columna se llame así en tu base de datos
+    likes: opinion.likes,
+    dislikes: opinion.dislikes
+  }));
+
+  // Renderizar la vista con el usuario y las opiniones
+  res.render('profile', { usuario, opiniones: opiniones_usuario });
 });
 
 app.post('/new', async (req, res) => {
@@ -85,8 +100,7 @@ app.post('/login_val', async (req, res) => {
       // Actualiza el objeto usuario con los datos del usuario encontrado
       usuario.id = user.id;
       usuario.nombre = user.usuario;
-      
-      
+  
       // Renderiza la vista 'index' pasando el objeto usuario actualizado
       res.render('index', { usuario: usuario });
 
