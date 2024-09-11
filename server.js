@@ -39,22 +39,65 @@ app.get('/login', async (req, res) => {
 app.get('/perfil-maestro', async (req, res) => {
   const query = req.query.q.toLowerCase();
 
-  // Buscar el maestro en la base de datos por nombre y apellido
-  const data = await pool.query(
-    'SELECT id, nombre, apellido FROM maestros WHERE LOWER(CONCAT(nombre, \' \', apellido)) = $1',
-    [query]
-  );
+  try {
+    // Buscar al maestro en la base de datos por nombre completo
+    const data = await pool.query(
+      'SELECT id, nombre, apellido FROM maestros WHERE LOWER(CONCAT(nombre, \' \', apellido)) = $1',
+      [query]
+    );
 
-  if (data.rows.length > 0) {
-    const maestro = data.rows[0];
-    // Renderizar una página vacía con solo el ID del maestro
-    res.render('maestro_profile', { id: maestro.id });
-  } else {
-    res.status(404).send('Maestro no encontrado');
+    if (data.rows.length > 0) {
+      const maestro = data.rows[0];
+
+      // Capitalizar cada palabra en el nombre y apellido
+      const nombreCapitalizado = maestro.nombre.split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+
+      const apellidoCapitalizado = maestro.apellido.split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+
+      // Buscar las materias del maestro
+      const materias = await pool.query(
+        'SELECT materia_id_1, materia_id_2, materia_id_3, materia_id_4, materia_id_5 FROM materias_maestro WHERE id = $1',
+        [maestro.id]
+      );
+
+      // Filtrar las materias que no sean nulas
+      const materiaIds = [
+        materias.rows[0].materia_id_1,
+        materias.rows[0].materia_id_2,
+        materias.rows[0].materia_id_3,
+        materias.rows[0].materia_id_4,
+        materias.rows[0].materia_id_5
+      ].filter(id => id !== null && id !== undefined);
+
+      // Obtener las materias correspondientes
+      const materiasInfo = await pool.query(
+        'SELECT id, nombre FROM materias WHERE id = ANY($1::int[])',
+        [materiaIds]
+      );
+
+      // Transformar las materias en una lista de nombres
+      const materiasLista = materiasInfo.rows.map(materia => materia.nombre);
+
+      const maestro_info = {
+        nombre: nombreCapitalizado,
+        apellido: apellidoCapitalizado,
+        id:maestro.id
+      };
+
+      // Renderizar la vista con la información del maestro y su lista de materias
+      res.render('maestro_profile', { id: maestro.id, usuario: usuario, materias: materiasLista, maestro: maestro_info, usuario_id:usuario.id });
+    } else {
+      res.status(404).send('Maestro no encontrado');
+    }
+  } catch (error) {
+    console.error('Error en la consulta:', error);
+    res.status(500).send('Error interno del servidor');
   }
 });
-
-
 
 
 app.get('/buscar', async (req, res) => {
@@ -75,17 +118,13 @@ app.get('/buscar', async (req, res) => {
 
 
 app.post('/post_opinion', async (req, res) => {
-  const { materia, maestro, contenido } = req.body;
+  const { materia, opinion, maestroID } = req.body; // Cambia 'contenido' a 'opinion' y 'maestro' a 'maestroID'
 
-  // Validar que maestro esté definido
-  if (!maestro) {
-    return res.status(400).send('El parámetro "maestro" es requerido');
+  // Validar que opinion no esté vacío
+  if (!opinion || !opinion.trim()) {
+    return res.status(400).send('El contenido de la opinión es requerido.');
   }
 
-  // Separar el nombre y apellido del maestro
-  const partes = maestro.split(" ");
-  const nombre = partes[0];
-  const apellido = partes[1];
 
   try {
     // Obtener el id de la materia
@@ -93,19 +132,22 @@ app.post('/post_opinion', async (req, res) => {
     const idMateria = idMateriaResult.rows[0].id;
 
     // Obtener el id del maestro
-    const idMaestroResult = await pool.query('SELECT id FROM maestros WHERE nombre=$1 AND apellido=$2', [nombre, apellido]);
-    const idMaestro = idMaestroResult.rows[0].id;
+    const idMaestro = maestroID; // Usa maestroID directamente
 
     // Insertar la opinión en la base de datos
-    await pool.query('INSERT INTO opiniones (user_id, maestro_id, materia_id, contenido, likes, dislikes) VALUES ($1, $2, $3, $4, 0, 0)', [usuario.id, idMaestro, idMateria, contenido]);
+    await pool.query(
+      'INSERT INTO opiniones (user_id, maestro_id, materia_id, contenido, likes, dislikes) VALUES ($1, $2, $3, $4, 0, 0)',
+      [usuario.id, idMaestro, idMateria, opinion] // Usa 'opinion' en lugar de 'contenido'
+    );
 
     // Enviar una respuesta exitosa 
-    res.status(200).send('Opinión agregada exitosamente');
+    res.status(200).json({ success: true });
   } catch (error) {
     console.error('Error al procesar la solicitud:', error);
     res.status(500).send('Hubo un error al procesar la solicitud');
   }
 });
+
 
 
 
