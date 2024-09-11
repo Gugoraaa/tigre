@@ -34,6 +34,81 @@ app.get('/login', async (req, res) => {
   res.render('login');
 });
 
+
+
+app.get('/perfil-maestro', async (req, res) => {
+  const query = req.query.q.toLowerCase();
+
+  // Buscar el maestro en la base de datos por nombre y apellido
+  const data = await pool.query(
+    'SELECT id, nombre, apellido FROM maestros WHERE LOWER(CONCAT(nombre, \' \', apellido)) = $1',
+    [query]
+  );
+
+  if (data.rows.length > 0) {
+    const maestro = data.rows[0];
+    // Renderizar una página vacía con solo el ID del maestro
+    res.render('maestro_profile', { id: maestro.id });
+  } else {
+    res.status(404).send('Maestro no encontrado');
+  }
+});
+
+
+
+
+app.get('/buscar', async (req, res) => {
+  const query = req.query.q.toLowerCase();
+
+  // Obtener los datos de la base de datos
+  const data = await pool.query('SELECT nombre, apellido FROM maestros');
+
+  // Combinar nombre y apellido
+  const maestros = data.rows.map(maestro => `${maestro.nombre} ${maestro.apellido}`);
+
+  // Filtrar los resultados basados en la consulta
+  const resultados = maestros.filter(maestro => maestro.toLowerCase().includes(query));
+
+  // Enviar los resultados filtrados como JSON
+  res.json(resultados);
+});
+
+
+app.post('/post_opinion', async (req, res) => {
+  const { materia, maestro, contenido } = req.body;
+
+  // Validar que maestro esté definido
+  if (!maestro) {
+    return res.status(400).send('El parámetro "maestro" es requerido');
+  }
+
+  // Separar el nombre y apellido del maestro
+  const partes = maestro.split(" ");
+  const nombre = partes[0];
+  const apellido = partes[1];
+
+  try {
+    // Obtener el id de la materia
+    const idMateriaResult = await pool.query('SELECT id FROM materias WHERE nombre=$1', [materia]);
+    const idMateria = idMateriaResult.rows[0].id;
+
+    // Obtener el id del maestro
+    const idMaestroResult = await pool.query('SELECT id FROM maestros WHERE nombre=$1 AND apellido=$2', [nombre, apellido]);
+    const idMaestro = idMaestroResult.rows[0].id;
+
+    // Insertar la opinión en la base de datos
+    await pool.query('INSERT INTO opiniones (user_id, maestro_id, materia_id, contenido, likes, dislikes) VALUES ($1, $2, $3, $4, 0, 0)', [usuario.id, idMaestro, idMateria, contenido]);
+
+    // Enviar una respuesta exitosa 
+    res.status(200).send('Opinión agregada exitosamente');
+  } catch (error) {
+    console.error('Error al procesar la solicitud:', error);
+    res.status(500).send('Hubo un error al procesar la solicitud');
+  }
+});
+
+
+
 app.get('/user_screen', async (req, res) => {
   function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -105,7 +180,7 @@ app.post('/login_val', async (req, res) => {
       res.render('index', { usuario: usuario });
 
     } else {
-      return res.redirect('/login?message=No existen credenciales&messageType=error');
+      return res.redirect('/login?message=' + encodeURIComponent('No existen credenciales') + '&messageType=error');
     }
   } catch (err) {
     console.error(err.message);

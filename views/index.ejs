@@ -25,14 +25,20 @@
             <!-- Search bar -->
             <div class="flex-grow mx-4">
                 <div class="relative">
-                    <input type="text" placeholder="Buscar" class="w-full bg-black text-white rounded-full pl-10 py-2">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-3">
-                        <svg class="text-white h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 18l6-6m0 0l-6-6m6 6H3"></path>
-                        </svg>
-                    </div>
+                  <!-- Campo de búsqueda -->
+                  <input id="busqueda" type="text" placeholder="Buscar" class="w-full bg-black text-white rounded-full pl-10 py-2">
+                  
+                  <!-- Ícono de búsqueda -->
+                  <div class="absolute inset-y-0 left-0 flex items-center pl-3">
+                    <svg class="text-white h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 18l6-6m0 0l-6-6m6 6H3"></path>
+                    </svg>
+                  </div>
+                  
+                  <!-- Resultados de búsqueda -->
+                  <ul id="resultados" class="absolute w-full bg-white text-black mt-2 rounded-lg"></ul>
                 </div>
-            </div>
+              </div>
 
             <!-- Profile icon -->
             <a id="login-link" class="bg-gray-300 rounded-full h-16 w-16 flex items-center justify-center">
@@ -43,8 +49,11 @@
         </div>
     </nav>
 
+    <!-- Incluir el archivo de script externo -->
+    <script src="/js/scripts.js"></script>
+
     <script>
-        // Obtén el id del objeto usuario y asegúrate de que sea tratado como un número
+        // Obtén el id del objeto usuario desde la plantilla EJS
         let id = <%= usuario.id %>;  // Esto inyectará el valor del id en el script
 
         // Selecciona el enlace
@@ -57,5 +66,8 @@
             loginLink.href = '/user_screen'; // Endpoint para id > 0
         }
     </script>
+
+    
+    
 </body>
 </html>
