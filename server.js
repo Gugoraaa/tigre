@@ -88,8 +88,22 @@ app.get('/perfil-maestro', async (req, res) => {
         id:maestro.id
       };
 
+      const result = await pool.query('SELECT * FROM public.obtener_opiniones_de_maestro($1)', [maestro_info.id]);
+
+      const opiniones = result.rows;  // Obtener todas las filas
+
+      // Crear un arreglo para almacenar las opiniones del usuario
+      let opiniones_maestro = opiniones.map(opinion => ({
+        usuario: opinion.username,
+        materia: opinion.materia_nombre,
+        contenido: opinion.contenido,  // Asegúrate de que la columna se llame así en tu base de datos
+        likes: opinion.likes,
+        dislikes: opinion.dislikes
+      }));
+
+
       // Renderizar la vista con la información del maestro y su lista de materias
-      res.render('maestro_profile', { id: maestro.id, usuario: usuario, materias: materiasLista, maestro: maestro_info, usuario_id:usuario.id });
+      res.render('maestro_profile', { id: maestro.id, usuario: usuario, materias: materiasLista, maestro: maestro_info, usuario_id:usuario.id ,opiniones: opiniones_maestro});
     } else {
       res.status(404).send('Maestro no encontrado');
     }

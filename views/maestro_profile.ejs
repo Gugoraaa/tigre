@@ -49,52 +49,69 @@
         </div>
     </nav>
 
+    <main class="px-16"> 
+      <div class=" ">
+          <h1 class="text-4xl font-bold mb-2">Maestro <%= maestro.nombre %> <%= maestro.apellido %> </h1>
+      
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-semibold">Materias</h2>
+              <ul class="list-disc ml-5"> <!-- Añadir clases de Tailwind CSS para las bolitas y margen -->
+                  <% materias.forEach(function(materia) { %>
+                    <li><%= materia %></li>
+                  <% }); %>
+                </ul>
+            </div>
+            <div class="flex items-center space-x-4">
+              <div class="flex items-center">
+                <span class="mr-1 text-lg">👍</span>
+                <span id="likes" class="text-lg font-bold">6</span>
+              </div>
+              <div class="flex items-center">
+                <span class="mr-1 text-lg">👎</span>
+                <span id="dislikes" class="text-lg font-bold">9</span>
+              </div>
+            </div>
+          </div>
+      
+          <!-- Agregar opinión -->
+          <div class="mt-4 p-6 mb-12 text-white bg-black border border-gray-300 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold mb-2 text-white">Agregar opinión</h3>
+            <form id="opinion-form" class="flex space-x-4">
+              <!-- Dropdown Materia -->
+              <div class="relative w-1/4">
+                <select id="materia-dropdown" class="w-full bg-white text-black p-2 rounded">
+                  <% materias.forEach(materia => { %>
+                    <option value="<%= materia %>"><%= materia %></option>
+                  <% }); %>
+                </select>
+              </div>
+      
+              <!-- Input de Opinión -->
+              <input id="opinion-input" type="text" class="w-1/2 bg-white text-black p-2 rounded" placeholder="Opinión" />
+      
+              <!-- Botón enviar -->
+              <button type="submit" class="bg-black text-white px-4 py-2 rounded">Listo</button>
+            </form>
+          </div>
+        </div>
 
-    <div class="container px-16">
-        <h1 class="text-4xl font-bold mb-2">Maestro <%= maestro.nombre %> <%= maestro.apellido %> </h1>
-    
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 class="text-lg font-semibold">Materias</h2>
-            <ul class="list-disc ml-5"> <!-- Añadir clases de Tailwind CSS para las bolitas y margen -->
-                <% materias.forEach(function(materia) { %>
-                  <li><%= materia %></li>
-                <% }); %>
-              </ul>
-          </div>
-          <div class="flex items-center space-x-4">
-            <div class="flex items-center">
-              <span class="mr-1 text-lg">👍</span>
-              <span id="likes" class="text-lg font-bold">6</span>
-            </div>
-            <div class="flex items-center">
-              <span class="mr-1 text-lg">👎</span>
-              <span id="dislikes" class="text-lg font-bold">9</span>
-            </div>
-          </div>
-        </div>
-    
-        <!-- Agregar opinión -->
-        <div class="mt-4">
-          <h3 class="text-lg font-semibold mb-2">Agregar opinión</h3>
-          <form id="opinion-form" class="flex space-x-4">
-            <!-- Dropdown Materia -->
-            <div class="relative w-1/4">
-              <select id="materia-dropdown" class="w-full bg-black text-white p-2 rounded">
-                <% materias.forEach(materia => { %>
-                  <option value="<%= materia %>"><%= materia %></option>
-                <% }); %>
-              </select>
-            </div>
-    
-            <!-- Input de Opinión -->
-            <input id="opinion-input" type="text" class="w-1/2 bg-black text-white p-2 rounded" placeholder="Opinión" />
-    
-            <!-- Botón enviar -->
-            <button type="submit" class="bg-black text-white px-4 py-2 rounded">Listo</button>
-          </form>
-        </div>
-    </div>
+
+        <div class="pt-10">
+          <% opiniones.forEach(opinion => { %>
+              <div class="p-6 mb-12 text-white bg-black border border-gray-300 rounded-lg shadow-md">
+                  <p><strong>Usuario:</strong> <%= opinion.usuario %></p>
+                  <p><strong>Materia:</strong> <%= opinion.materia %></p>
+                  <p><strong>Contenido:</strong> <%= opinion.contenido %></p>
+                  <p><strong>Likes:</strong> <%= opinion.likes %></p>
+                  <p><strong>Dislikes:</strong> <%= opinion.dislikes %></p>
+                  
+              </div>
+          <% }) %>
+      </div>
+
+
+  </main>
 
     <!-- Incluir el archivo de script externo -->
     <script src="/js/script_maestros.js"></script>
