@@ -11,7 +11,8 @@ const __dirname = dirname(__filename);
 
 let usuario = {
   id: 0,
-  nombre: ""
+  nombre: "",
+  role: 0
 };
 
 app.use(express.static(join(__dirname, 'public')));
@@ -88,7 +89,7 @@ app.get('/perfil-maestro', async (req, res) => {
         id:maestro.id
       };
 
-      const result = await pool.query('SELECT * FROM public.obtener_opiniones_de_maestro($1)', [maestro_info.id]);
+      const result = await pool.query('SELECT * FROM public.obtener_opiniones_de_maestro($1) ORDER BY likes DESC', [maestro_info.id]);
 
       const opiniones = result.rows;  // Obtener todas las filas
 
@@ -231,6 +232,8 @@ app.post('/login_val', async (req, res) => {
       // Actualiza el objeto usuario con los datos del usuario encontrado
       usuario.id = user.id;
       usuario.nombre = user.usuario;
+      usuario.role= user
+
   
       // Renderiza la vista 'index' pasando el objeto usuario actualizado
       res.render('index', { usuario: usuario });
